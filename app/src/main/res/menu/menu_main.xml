@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="jtmorris.info.supplycontroller.MainActivity">
+    <item
+        android:id="@+id/actionConnect"
+        android:orderInCategory="100"
+        android:title="Connect" />
+    <item
+        android:id="@+id/actionDisconnect"
+        android:orderInCategory="102"
+        android:title="Disconnect" />
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="101"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+</menu>

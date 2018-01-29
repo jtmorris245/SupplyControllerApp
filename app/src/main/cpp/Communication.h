@@ -1,0 +1,14 @@
+//
+// Created by Thomas on 28/01/2018.
+//
+
+#ifndef SUPPLYCONTROLLER2_COMMUNICATION_H
+#define SUPPLYCONTROLLER2_COMMUNICATION_H
+
+
+class Communication {
+
+};
+
+
+#endif //SUPPLYCONTROLLER2_COMMUNICATION_H

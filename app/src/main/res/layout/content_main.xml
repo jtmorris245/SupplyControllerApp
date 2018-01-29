@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="jtmorris.info.supplycontroller.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:gravity="fill"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <!--<Button-->
+        <!--android:id="@+id/Bluetoothon"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:onClick="on_Bluetooth_btn_press"-->
+        <!--android:text="Turn On Bluetooth" />-->
+
+        <!--<Button-->
+        <!--android:id="@+id/BluetoothScan"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:onClick="on_bluetooth_search_btn_press"-->
+        <!--android:text="Scan For Devices" />-->
+
+        <!--<Space-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content" />-->
+
+        <!--<ListView-->
+        <!--android:id="@+id/result_list"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:divider="?android:attr/dividerHorizontal"-->
+        <!--android:headerDividersEnabled="false"-->
+        <!--android:scrollbars="vertical" />-->
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Parameters" />
+
+        <ToggleButton
+            android:id="@+id/toggleButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ToggleButton" />
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:text="Output Voltage"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                app:layout_constraintBaseline_toBaselineOf="@+id/editText6"
+                app:layout_constraintEnd_toStartOf="@+id/editText6"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <EditText
+                android:id="@+id/editText6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:ems="10"
+                android:inputType="numberDecimal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:text="Current Limit"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                app:layout_constraintBaseline_toBaselineOf="@+id/editText6"
+                app:layout_constraintEnd_toStartOf="@+id/editText6"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <EditText
+                android:id="@+id/editText6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:ems="10"
+                android:inputType="numberDecimal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Measurements" />
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/background_dark">
+
+            <TextView
+                android:id="@+id/STATUSMSGDISP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="STATUS"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/CONVSTATDisp" />
+
+            <TextView
+                android:id="@+id/GPSSTATDisp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="NO LOCK"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toEndOf="@+id/VBatt"
+                app:layout_constraintStart_toStartOf="@+id/VBatt"
+                app:layout_constraintTop_toBottomOf="@+id/VBatt" />
+
+            <TextView
+                android:id="@+id/CONVSTATDisp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="CONV OFF"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toEndOf="@+id/VBattLbl"
+                app:layout_constraintStart_toStartOf="@+id/VBattLbl"
+                app:layout_constraintTop_toBottomOf="@+id/VBattLbl" />
+
+            <TextView
+                android:id="@+id/VBattLbl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="VBATT ="
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toEndOf="@+id/VoltageDisp"
+                app:layout_constraintStart_toStartOf="@+id/VoltageDisp"
+                app:layout_constraintTop_toBottomOf="@+id/VoltageDisp" />
+
+            <TextView
+                android:id="@+id/VBatt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="0 V"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toEndOf="@+id/CurrentDisp"
+                app:layout_constraintStart_toStartOf="@+id/CurrentDisp"
+                app:layout_constraintTop_toBottomOf="@+id/CurrentDisp"
+                tools:text="0 V" />
+
+            <TextView
+                android:id="@+id/VoltageDisp"
+                android:layout_width="179dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="0 V"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toStartOf="@+id/CurrentDisp"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/CurrentDisp"
+                android:layout_width="179dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:editable="false"
+                android:fontFamily="@font/vt323"
+                android:text="0 A"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/VoltageDisp"
+                tools:text="0 A" />
+        </android.support.constraint.ConstraintLayout>
+
+        <Button
+            android:id="@+id/ShowGPSLocButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show GPS Location" />
+
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

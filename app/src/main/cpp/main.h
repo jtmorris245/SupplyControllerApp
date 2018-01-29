@@ -1,0 +1,8 @@
+//
+// Created by Thomas on 28/01/2018.
+//
+
+#ifndef SUPPLYCONTROLLER2_MAIN_H
+#define SUPPLYCONTROLLER2_MAIN_H
+
+#endif //SUPPLYCONTROLLER2_MAIN_H
