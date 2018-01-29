@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -14,25 +15,70 @@ import android.view.MenuItem;
 
 import com.macroyau.blue2serial.BluetoothDeviceListDialog;
 import com.macroyau.blue2serial.BluetoothSerial;
-import com.macroyau.blue2serial.BluetoothSerialListener;
-public class MainActivity extends AppCompatActivity implements BluetoothSerialListener, BluetoothDeviceListDialog.OnDeviceSelectedListener {
+import com.macroyau.blue2serial.BluetoothSerialRawListener;
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
+import java.util.Arrays;
+
+public class MainActivity extends AppCompatActivity implements BluetoothSerialRawListener, BluetoothDeviceListDialog.OnDeviceSelectedListener {
+
+    private static final int REQUEST_ENABLE_BLUETOOTH = 1;
 //    private BluetoothAdapter BA;
 //    private Button bluetooth_on_btn;
 //    private Button bluetooth_search_btn;
 //    private ListView result_list;
 //    private Set<BluetoothDevice>pairedDevices;
+    /*	Command Set				Returns
+     * 0x01 +4B Set Voltage             0
+     * 0x02 +4B Set Current             0
+     * 0x03     Get Voltage SP          4B float
+     * 0x04     Get Current SP          4B float
+     * 0x05     Return State Struct     TBD
+     * 0x06     Get Measured Voltage    4B float
+     * 0x07     Get Measured Current    4B float
+     * 0x08     Get Battery Voltage     4B float
+     * All responses followed by new line
+     */
+private static final Byte[] CMD_SET_VOLTAGE = {0x01};
+    private static final Byte[] CMD_SET_CURRENT = {0x02};
+    private static final Byte[] CMD_GET_VOLTAGESP = {0x03};
+    private static final Byte[] CMD_GET_CURRENTSP = {0x04};
+    private static final Byte[] CMD_RTN_STATE = {0x05};
+    private static final Byte[] CMD_GET_VOLTAGE = {0x06};
+    private static final Byte[] CMD_GET_CURRENT = {0x07};
+    private static final Byte[] CMD_GET_VBATT = {0x08};
+    private static final Byte[] CR_LF = {13, 10};
 
-    private static final int REQUEST_ENABLE_BLUETOOTH = 1;
+    // Used to load the 'native-lib' library on application startup.
+    static {
+        System.loadLibrary("native-lib");
+    }
 
     private BluetoothSerial bluetoothSerial;
-
     private MenuItem actionConnect, actionDisconnect;
+    private Handler handler = new Handler();
+    private int delay = 1000; //milliseconds
+    private int state_expected = 0;
+    // 0 - none + CRLF
+    // 1 - 4B float + CRLF
+    // 2 - State Struct + CRLF
+    private boolean data_requested; // prevents multiple stacked requests/commands
+    private int pollnumber = 0; // decides which data to poll this request.
 
+    /* End of the implementation of listeners */
+    // Array concat implementation
+    public static <T> T[] concatAll(T[] first, T[]... rest) {
+        int totalLength = first.length;
+        for (T[] array : rest) {
+            totalLength += array.length;
+        }
+        T[] result = Arrays.copyOf(first, totalLength);
+        int offset = first.length;
+        for (T[] array : rest) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
+    }
 
     @Override
     protected void onStart() {
@@ -40,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
 
         // Check Bluetooth availability on the device and set up the Bluetooth adapter
         bluetoothSerial.setup();
+
     }
 
     @Override
@@ -50,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
         if (bluetoothSerial.checkBluetooth() && bluetoothSerial.isBluetoothEnabled()) {
             if (!bluetoothSerial.isConnected()) {
                 bluetoothSerial.start();
+
             }
         }
     }
@@ -101,7 +149,58 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(subtitle);
         }
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                if (bluetoothSerial != null
+                        && bluetoothSerial.getState() == BluetoothSerial.STATE_CONNECTED
+                        && !data_requested)
+                // Only request data if BT is connected, and no other states are waiting.
+                {
+
+                    //Get State Struct
+                    byte[] toSend;
+                    switch (pollnumber) {
+                        case 0:
+                            toSend = toPrimitives(concatAll(CMD_RTN_STATE, CR_LF));
+                            state_expected = 2;
+                            break;
+                        case 1:
+                            toSend = toPrimitives(concatAll(CMD_GET_VOLTAGE, CR_LF));
+                            state_expected = 1;
+                            break;
+                        case 2:
+                            toSend = toPrimitives(concatAll(CMD_GET_CURRENT, CR_LF));
+                            state_expected = 1;
+                            break;
+                        case 3:
+                            toSend = toPrimitives(concatAll(CMD_GET_VBATT, CR_LF));
+                            state_expected = 1;
+                            break;
+                        case 4:
+                            toSend = toPrimitives(concatAll(CMD_GET_VOLTAGESP, CR_LF));
+                            state_expected = 1;
+                            break;
+                        case 5:
+                            toSend = toPrimitives(concatAll(CMD_GET_CURRENTSP, CR_LF));
+                            state_expected = 1;
+                            break;
+                        default:
+                            return;
+                    }
+                    bluetoothSerial.write(toSend);
+                    data_requested = true;
+                    pollnumber++;
+                } else {
+                    handler.removeCallbacks(this);
+                    // stop polling if bluetooth is disconnected or still waiting for response.
+                    //@TODO Notify user of error.
+                }
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+
     }
+
     private void showDeviceListDialog() {
         // Display dialog for selecting a remote Bluetooth device
         BluetoothDeviceListDialog dialog = new BluetoothDeviceListDialog(this);
@@ -111,20 +210,15 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
         dialog.showAddress(true);
         dialog.show();
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create a new instance of BluetoothSerial
         bluetoothSerial = new BluetoothSerial(this, this);
-
-
-
-
-
-
 //        bluetooth_on_btn = (Button) findViewById(R.id.Bluetoothon);
 //        bluetooth_search_btn = (Button) findViewById(R.id.BluetoothScan);
 //        result_list = (ListView) findViewById(R.id.result_list);
@@ -155,15 +249,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
 //        // Example of a call to a native method
 //        TextView tv = (TextView) findViewById(R.id.sample_text);
 //        tv.setText(stringFromJNI());
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        actionConnect = menu.findItem(R.id.actionConnect);
-        actionDisconnect = menu.findItem(R.id.actionDisconnect);
-        return true;
     }
 
 //    public void on_Bluetooth_btn_press(View v)
@@ -198,6 +283,15 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
 //            }
 //        });
 //    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        actionConnect = menu.findItem(R.id.actionConnect);
+        actionDisconnect = menu.findItem(R.id.actionDisconnect);
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -236,7 +330,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
                 actionDisconnect.setVisible(false);
         }
     }
-
 
     @Override
     public void onBluetoothNotSupported() {
@@ -281,6 +374,36 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
         // @TODO process incoming data
     }
 
+    public void onBluetoothSerialReadRaw(byte[] data) {
+        // Print the incoming message on the terminal screen
+        // @TODO process incoming data
+        if (!data_requested) //process as a incoming notification not a requested data packet
+        {
+
+        } else switch (state_expected) {
+            case 0: //CRLF only
+                if (data[0] != 13 || data[1] != 10 || data.length != 2) {
+                    // Not as expected, throw exception
+                    throw new IllegalStateException("Unexpected or corrupted packet");
+                }
+                break;
+            case 1: //4B Float + CRLF
+                if (data[4] != 13 || data[5] != 10 || data.length != 6) {
+                    // Not as expected, throw exception
+                    throw new IllegalStateException("Unexpected or corrupted packet");
+                }
+                break;
+            case 2: // State struct 9B + CRLF
+                if (data[9] != 13 || data[10] != 10 || data.length != 11) {
+                    // Not as expected, throw exception
+                    throw new IllegalStateException("Unexpected or corrupted packet");
+                }
+                break;
+        }
+
+
+    }
+
     @Override
     public void onBluetoothSerialWrite(String message) {
         // Print the outgoing message on the terminal screen
@@ -290,10 +413,26 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialLi
     /* Implementation of BluetoothDeviceListDialog.OnDeviceSelectedListener */
 
     @Override
+    public void onBluetoothSerialWriteRaw(byte[] data) {
+        // Print the outgoing message on the terminal screen
+        //@TODO Implement sending commands
+    }
+
+    @Override
     public void onBluetoothDeviceSelected(BluetoothDevice device) {
         // Connect to the selected remote Bluetooth device
         bluetoothSerial.connect(device);
     }
 
-    /* End of the implementation of listeners */
+    // Byte to byte
+    byte[] toPrimitives(Byte[] oBytes) {
+
+        byte[] bytes = new byte[oBytes.length];
+        for (int i = 0; i < oBytes.length; i++) {
+            bytes[i] = oBytes[i];
+        }
+        return bytes;
+
+    }
+
 }
