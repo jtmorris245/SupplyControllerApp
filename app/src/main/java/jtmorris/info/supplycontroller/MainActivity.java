@@ -6,23 +6,29 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.macroyau.blue2serial.BluetoothDeviceListDialog;
 import com.macroyau.blue2serial.BluetoothSerial;
 import com.macroyau.blue2serial.BluetoothSerialRawListener;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements BluetoothSerialRawListener, BluetoothDeviceListDialog.OnDeviceSelectedListener {
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-//    private BluetoothAdapter BA;
+    //    private BluetoothAdapter BA;
 //    private Button bluetooth_on_btn;
 //    private Button bluetooth_search_btn;
 //    private ListView result_list;
@@ -38,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothSerialRa
      * 0x08     Get Battery Voltage     4B float
      * All responses followed by new line
      */
-private static final Byte[] CMD_SET_VOLTAGE = {0x01};
+    private static final Byte[] CMD_SET_VOLTAGE = {0x01};
     private static final Byte[] CMD_SET_CURRENT = {0x02};
     private static final Byte[] CMD_GET_VOLTAGESP = {0x03};
     private static final Byte[] CMD_GET_CURRENTSP = {0x04};
@@ -53,6 +59,8 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
         System.loadLibrary("native-lib");
     }
 
+    public float voltageSP;
+    public float currentSP;
     private BluetoothSerial bluetoothSerial;
     private MenuItem actionConnect, actionDisconnect;
     private Handler handler = new Handler();
@@ -62,7 +70,34 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
     // 1 - 4B float + CRLF
     // 2 - State Struct + CRLF
     private boolean data_requested; // prevents multiple stacked requests/commands
-    private int pollnumber = 0; // decides which data to poll this request.
+    private int poll_number = 0; // decides which data to poll this request.
+    private int expected_val = 0;
+
+    private Byte[] cmd_waiting;
+    private EditText VSetText = findViewById(R.id.OutVoltageSet);
+    private EditText ISetText = findViewById(R.id.OutCurrentSet);
+    private TextWatcher tx = new TextWatcher() {
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            voltageSP = Float.parseFloat(VSetText.getText().toString());
+            currentSP = Float.parseFloat(ISetText.getText().toString());
+            // TODO : Send commands to controller to update set points.
+
+            // TODO Auto-generated method stub
+        }
+    };
 
     /* End of the implementation of listeners */
     // Array concat implementation
@@ -159,29 +194,35 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
 
                     //Get State Struct
                     byte[] toSend;
-                    switch (pollnumber) {
+                    switch (poll_number) {
                         case 0:
                             toSend = toPrimitives(concatAll(CMD_RTN_STATE, CR_LF));
+                            expected_val = 0;
                             state_expected = 2;
                             break;
                         case 1:
                             toSend = toPrimitives(concatAll(CMD_GET_VOLTAGE, CR_LF));
+                            expected_val = (int) CMD_GET_VOLTAGE[0];
                             state_expected = 1;
                             break;
                         case 2:
                             toSend = toPrimitives(concatAll(CMD_GET_CURRENT, CR_LF));
+                            expected_val = (int) CMD_GET_CURRENT[0];
                             state_expected = 1;
                             break;
                         case 3:
                             toSend = toPrimitives(concatAll(CMD_GET_VBATT, CR_LF));
+                            expected_val = (int) CMD_GET_VBATT[0];
                             state_expected = 1;
                             break;
                         case 4:
                             toSend = toPrimitives(concatAll(CMD_GET_VOLTAGESP, CR_LF));
+                            expected_val = (int) CMD_GET_VOLTAGESP[0];
                             state_expected = 1;
                             break;
                         case 5:
                             toSend = toPrimitives(concatAll(CMD_GET_CURRENTSP, CR_LF));
+                            expected_val = (int) CMD_GET_CURRENTSP[0];
                             state_expected = 1;
                             break;
                         default:
@@ -189,7 +230,7 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
                     }
                     bluetoothSerial.write(toSend);
                     data_requested = true;
-                    pollnumber++;
+                    poll_number++;
                 } else {
                     handler.removeCallbacks(this);
                     // stop polling if bluetooth is disconnected or still waiting for response.
@@ -219,6 +260,11 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
         setSupportActionBar(toolbar);
         // Create a new instance of BluetoothSerial
         bluetoothSerial = new BluetoothSerial(this, this);
+
+
+        VSetText.addTextChangedListener(tx);
+        ISetText.addTextChangedListener(tx);
+
 //        bluetooth_on_btn = (Button) findViewById(R.id.Bluetoothon);
 //        bluetooth_search_btn = (Button) findViewById(R.id.BluetoothScan);
 //        result_list = (ListView) findViewById(R.id.result_list);
@@ -234,7 +280,6 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
 //            bluetooth_on_btn.setEnabled(true);
 //            bluetooth_search_btn.setEnabled(false);
 //        }
-
 
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -385,18 +430,59 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
                 if (data[0] != 13 || data[1] != 10 || data.length != 2) {
                     // Not as expected, throw exception
                     throw new IllegalStateException("Unexpected or corrupted packet");
+                } else {
+                    data_requested = false; // reset flag to allow more requests.
                 }
                 break;
             case 1: //4B Float + CRLF
                 if (data[4] != 13 || data[5] != 10 || data.length != 6) {
                     // Not as expected, throw exception
                     throw new IllegalStateException("Unexpected or corrupted packet");
+                } else {
+                    byte[] just_data = new byte[4];
+                    for (int i = 1; i < data.length - 2; i++) {
+                        just_data[i] = data[i];
+                    }
+                    ByteBuffer buf = ByteBuffer.wrap(just_data);
+                    float res = buf.getFloat();
+                    switch (expected_val) {
+                        case 0x03: //voltage sp
+                            //Do Something
+                            voltageSP = res;
+                            ((TextView) findViewById(R.id.OutVoltageSet)).setText(String.format("%f.2", res));
+                            break;
+                        case 0x04: //current sp
+                            //Do Something
+                            currentSP = res;
+                            ((TextView) findViewById(R.id.OutCurrentSet)).setText(String.format("%f.2", res));
+                            break;
+                        case 0x06: //voltage
+                            //Do Something
+                            ((TextView) findViewById(R.id.VoltageDisp)).setText(String.format("%f.2 V", res));
+                            break;
+                        case 0x07: //current
+                            //Do Something
+                            ((TextView) findViewById(R.id.CurrentDisp)).setText(String.format("%f.2 A", res));
+                            break;
+                        case 0x08: //vbatt
+                            //Do Something
+                            ((TextView) findViewById(R.id.VBatt)).setText(String.format("%f.2 V", res));
+                            if (res < 4) {
+                                ((TextView) findViewById(R.id.VBatt)).setTextColor(Color.RED);
+                            } else ((TextView) findViewById(R.id.VBatt)).setTextColor(Color.GREEN);
+                            break;
+                        default:
+                            throw new IllegalStateException("Unexpected or corrupted packet");
+                    }
+                    data_requested = false;
                 }
                 break;
             case 2: // State struct 9B + CRLF
                 if (data[9] != 13 || data[10] != 10 || data.length != 11) {
                     // Not as expected, throw exception
                     throw new IllegalStateException("Unexpected or corrupted packet");
+                } else {
+
                 }
                 break;
         }
@@ -423,6 +509,7 @@ private static final Byte[] CMD_SET_VOLTAGE = {0x01};
         // Connect to the selected remote Bluetooth device
         bluetoothSerial.connect(device);
     }
+
 
     // Byte to byte
     byte[] toPrimitives(Byte[] oBytes) {

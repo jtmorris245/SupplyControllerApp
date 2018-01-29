@@ -75,12 +75,12 @@
                 android:text="Output Voltage"
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                app:layout_constraintBaseline_toBaselineOf="@+id/editText6"
-                app:layout_constraintEnd_toStartOf="@+id/editText6"
+                app:layout_constraintBaseline_toBaselineOf="@+id/OutVoltageSet"
+                app:layout_constraintEnd_toStartOf="@+id/OutVoltageSet"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <EditText
-                android:id="@+id/editText6"
+                android:id="@+id/OutVoltageSet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -96,19 +96,19 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/textView5"
+                android:id="@+id/textView6"
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Current Limit"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                app:layout_constraintBaseline_toBaselineOf="@+id/editText6"
-                app:layout_constraintEnd_toStartOf="@+id/editText6"
+                app:layout_constraintBaseline_toBaselineOf="@+id/OutCurrentSet"
+                app:layout_constraintEnd_toStartOf="@+id/OutCurrentSet"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <EditText
-                android:id="@+id/editText6"
+                android:id="@+id/OutCurrentSet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
